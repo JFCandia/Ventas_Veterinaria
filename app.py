@@ -111,14 +111,21 @@ def dashboard():
 @login_required
 def agregar_producto():
     if request.method == 'POST':
+        # Obtener los datos del formulario
         nombre = request.form['nombre']
         precio = float(request.form['precio'])
         stock = int(request.form['stock'])
+
+        # Crear un nuevo producto
         producto = Producto(nombre=nombre, precio=precio, stock=stock)
         db.session.add(producto)
         db.session.commit()
+
+        # Mostrar mensaje de éxito
         flash(f"Producto '{nombre}' agregado correctamente.", "success")
         return redirect(url_for('dashboard'))
+
+    # Mostrar el formulario
     return render_template('agregar_producto.html')
 
 @app.route('/ventas')

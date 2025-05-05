@@ -1,40 +1,145 @@
+/* Estilo general */
 body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f4f6f9;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* Encabezados */
+h1, h2, h3 {
+    color: #212529;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-size: 2.5rem;
+}
+
+h2 {
+    font-size: 2rem;
+}
+
+h3 {
+    font-size: 1.5rem;
+}
+
+/* Botones */
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: #fff;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #004085;
+    color: #fff;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+    background-color: #a71d2a;
+    border-color: #7a0e1c;
+}
+
+/* Tablas */
+.table {
+    margin-top: 20px;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.table th {
+    background-color: #343a40;
+    color: #fff;
+    text-align: center;
+    font-weight: 600;
+    padding: 10px;
+}
+
+.table td {
+    text-align: center;
+    padding: 10px;
+    vertical-align: middle;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
     background-color: #f8f9fa;
 }
 
-h1 {
-    color: #2c3e50;
+.table-striped tbody tr:hover {
+    background-color: #e9ecef;
 }
 
-.table {
+/* Formularios */
+.form-label {
+    font-weight: bold;
+    color: #495057;
+}
+
+.form-control {
+    border-radius: 5px;
+    border: 1px solid #ced4da;
+    padding: 10px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Mensajes flash */
+.alert {
     margin-top: 20px;
+    border-radius: 5px;
+    font-size: 0.9rem;
 }
 
-.btn-success {
-    background-color: #28a745;
-    border: none;
+.alert-dismissible .btn-close {
+    padding: 0.5rem;
 }
 
-body {
-    background-color: #f4f4f4;
-    font-family: Arial, sans-serif;
+/* Barra de navegación */
+.navbar {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.container {
-    max-width: 900px;
-    margin: auto;
-    padding: 20px;
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
 }
 
-h1 {
+.nav-link {
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #007bff;
+}
+
+/* Pie de página */
+footer {
+    background-color: #343a40;
+    color: #fff;
+    padding: 15px 0;
     text-align: center;
-    color: #2c3e50;
-}
-
-.table {
-    margin-top: 20px;
-}
-
-.btn-primary, .btn-success {
+    font-size: 0.9rem;
+    position: relative;
+    bottom: 0;
     width: 100%;
+    box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.1);
 }
