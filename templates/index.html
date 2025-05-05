@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de Productos{% endblock %}
+
+{% block content %}
+<h1 class="text-center">Lista de Productos</h1>
+<table class="table table-bordered table-striped mt-4">
+    <thead class="table-dark">
+        <tr>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>Acción</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for producto in productos %}
+        <tr>
+            <td>{{ producto.nombre }}</td>
+            <td>${{ producto.precio }}</td>
+            <td>{{ producto.stock }}</td>
+            <td>
+                <form action="{{ url_for('vender', producto_id=producto.id) }}" method="POST" class="d-inline">
+                    <input type="number" name="cantidad" min="1" max="{{ producto.stock }}" required>
+                    <button type="submit" class="btn btn-primary btn-sm">Vender</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,40 @@
+body {
+    background-color: #f8f9fa;
+}
+
+h1 {
+    color: #2c3e50;
+}
+
+.table {
+    margin-top: 20px;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border: none;
+}
+
+body {
+    background-color: #f4f4f4;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    color: #2c3e50;
+}
+
+.table {
+    margin-top: 20px;
+}
+
+.btn-primary, .btn-success {
+    width: 100%;
+}
