@@ -4,6 +4,12 @@
 
 {% block content %}
 <h1 class="text-center">Lista de Productos</h1>
+
+<!-- Campo de búsqueda -->
+<div class="mb-3">
+    <input type="text" id="buscador" class="form-control" placeholder="Buscar producto por nombre...">
+</div>
+
 <table class="table table-bordered table-striped mt-4">
     <thead class="table-dark">
         <tr>
@@ -13,7 +19,7 @@
             <th>Acción</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody id="productos-tbody">
         {% for producto in productos %}
         <tr>
             <td>{{ producto.nombre }}</td>
@@ -29,4 +35,18 @@
         {% endfor %}
     </tbody>
 </table>
+
+<script>
+    // Filtrar productos por nombre
+    document.getElementById('buscador').addEventListener('input', function () {
+        const filtro = this.value.toLowerCase();
+        const filas = document.querySelectorAll('#productos-tbody tr');
+
+        filas.forEach(fila => {
+            const nombre = fila.querySelector('td').textContent.toLowerCase();
+            fila.style.display = nombre.includes(filtro) ? '' : 'none';
+        });
+    });
+</script>
+
 {% endblock %}

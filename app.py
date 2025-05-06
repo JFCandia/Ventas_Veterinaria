@@ -9,6 +9,7 @@ import os
 from werkzeug.utils import secure_filename
 import pandas as pd
 from models import db, Usuario, Producto, Venta, Categoria, HistorialStock
+from datetime import datetime
 
 # Configuración inicial
 app = Flask(__name__)
@@ -260,7 +261,8 @@ def generar_pdf_reporte_ventas():
 @login_required
 def generar_pdf_reporte_stock():
     productos = Producto.query.all()
-    rendered = render_template('reporte_stock_pdf.html', productos=productos)
+    now = datetime.now()
+    rendered = render_template('reporte_stock_pdf.html', productos=productos, now=now)
     pdf = BytesIO()
     pisa.CreatePDF(BytesIO(rendered.encode("UTF-8")), dest=pdf)
     pdf.seek(0)

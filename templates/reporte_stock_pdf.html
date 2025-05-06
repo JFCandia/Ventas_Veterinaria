@@ -3,10 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <title>Reporte de Stock</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+        tfoot th {
+            background-color: #f9f9f9;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h2>Veterinaria XXX</h2>
+        <p>Dirección: Calle Falsa 123, Ciudad</p>
+        <p>Teléfono: +569 XXXXXXX</p>
+    </div>
+
     <h1>Reporte de Stock</h1>
-    <table border="1" cellspacing="0" cellpadding="5">
+    <p>Fecha del Reporte: {{ now.strftime('%d/%m/%Y %H:%M:%S') }}</p>
+
+    <table>
         <thead>
             <tr>
                 <th>Producto</th>
@@ -25,6 +61,12 @@
             </tr>
             {% endfor %}
         </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="3" style="text-align: right;">Valor Total del Stock:</th>
+                <th>${{ productos | sum(attribute='stock') * productos | sum(attribute='precio') }}</th>
+            </tr>
+        </tfoot>
     </table>
 </body>
 </html>
