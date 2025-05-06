@@ -5,6 +5,11 @@
 {% block content %}
 <h1 class="text-center">Reporte de Ventas</h1>
 
+<!-- Botón para generar PDF -->
+<div class="text-end mb-3">
+    <a href="{{ url_for('generar_pdf_reporte_ventas') }}" class="btn btn-danger">Generar PDF</a>
+</div>
+
 <table class="table table-bordered table-striped">
     <thead class="table-dark">
         <tr>

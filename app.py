@@ -245,6 +245,27 @@ def reporte_stock():
     productos = Producto.query.all()
     return render_template('reporte_stock.html', productos=productos)
 
+@app.route('/generar_pdf_reporte_ventas')
+@login_required
+def generar_pdf_reporte_ventas():
+    ventas = Venta.query.all()
+    total_ventas = sum(venta.cantidad * venta.producto.precio for venta in ventas if venta.producto)
+    rendered = render_template('reporte_ventas_pdf.html', ventas=ventas, total_ventas=total_ventas)
+    pdf = BytesIO()
+    pisa.CreatePDF(BytesIO(rendered.encode("UTF-8")), dest=pdf)
+    pdf.seek(0)
+    return send_file(pdf, as_attachment=True, download_name='reporte_ventas.pdf')
+
+@app.route('/generar_pdf_reporte_stock')
+@login_required
+def generar_pdf_reporte_stock():
+    productos = Producto.query.all()
+    rendered = render_template('reporte_stock_pdf.html', productos=productos)
+    pdf = BytesIO()
+    pisa.CreatePDF(BytesIO(rendered.encode("UTF-8")), dest=pdf)
+    pdf.seek(0)
+    return send_file(pdf, as_attachment=True, download_name='reporte_stock.pdf')
+
 if __name__ == '__main__':
     with app.app_context():
         # Código para inicializar datos
