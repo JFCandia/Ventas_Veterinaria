@@ -5,6 +5,9 @@
 {% block content %}
 <h1 class="text-center">Panel de Administración</h1>
 
+<a href="{{ url_for('generar_pdf') }}" class="btn btn-primary mb-4">Generar PDF</a>
+<a href="{{ url_for('cargar_productos') }}" class="btn btn-success mb-4">Cargar Productos desde Excel</a>
+
 <!-- Tabla de ventas -->
 <h2 class="mt-4">Ventas</h2>
 <table class="table table-bordered table-striped">
@@ -34,6 +37,7 @@
             <th>Nombre</th>
             <th>Precio</th>
             <th>Stock</th>
+            <th>Acción</th>
         </tr>
     </thead>
     <tbody>
@@ -42,6 +46,18 @@
             <td>{{ producto.nombre }}</td>
             <td>${{ producto.precio }}</td>
             <td>{{ producto.stock }}</td>
+            <td>
+                <!-- Formulario para ajustar el stock -->
+                <form action="{{ url_for('ajustar_stock', producto_id=producto.id) }}" method="POST" class="d-inline">
+                    <input type="number" name="cantidad" min="1" max="{{ producto.stock }}" placeholder="Cantidad" required>
+                    <button type="submit" class="btn btn-warning btn-sm">Reducir Stock</button>
+                </form>
+
+                <!-- Botón para eliminar producto -->
+                <form action="{{ url_for('eliminar_producto', producto_id=producto.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?')">Eliminar</button>
+                </form>
+            </td>
         </tr>
         {% endfor %}
     </tbody>

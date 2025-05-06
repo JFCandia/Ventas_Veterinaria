@@ -1,14 +1,24 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, session, flash
+from flask import Flask, render_template, request, redirect, url_for, jsonify, session, flash, make_response, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
+from xhtml2pdf import pisa
+from io import BytesIO
+import os
+from werkzeug.utils import secure_filename
+import pandas as pd
 
 # Configuración inicial
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///veterinaria.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'clave_secreta'
+
+# Configuración para subir archivos
+UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Inicialización de extensiones
 db = SQLAlchemy(app)
@@ -170,6 +180,98 @@ def reportes():
     data = [venta[1] for venta in ventas]    # Cantidades vendidas
 
     return render_template('reportes.html', labels=labels, data=data)
+
+@app.route('/eliminar_producto/<int:producto_id>', methods=['POST'])
+@login_required
+def eliminar_producto(producto_id):
+    producto = Producto.query.get_or_404(producto_id)  # Busca el producto o lanza un error 404
+    db.session.delete(producto)  # Elimina el producto de la base de datos
+    db.session.commit()  # Guarda los cambios
+    flash(f"Producto '{producto.nombre}' eliminado correctamente.", "success")
+    return redirect(url_for('dashboard'))  # Redirige al dashboard
+
+@app.route('/ajustar_stock/<int:producto_id>', methods=['POST'])
+@login_required
+def ajustar_stock(producto_id):
+    producto = Producto.query.get_or_404(producto_id)
+    cantidad_a_reducir = int(request.form['cantidad'])
+
+    if cantidad_a_reducir > producto.stock:
+        flash(f"No puedes reducir más del stock disponible ({producto.stock}).", "danger")
+    else:
+        producto.stock -= cantidad_a_reducir
+        db.session.commit()
+        flash(f"Se redujo el stock de '{producto.nombre}' en {cantidad_a_reducir} unidades.", "success")
+
+    return redirect(url_for('dashboard'))
+
+@app.route('/generar_pdf')
+@login_required
+def generar_pdf():
+    # Consulta los datos necesarios
+    productos = Producto.query.all()
+    ventas = db.session.query(
+        Producto.nombre,
+        db.func.sum(Venta.cantidad).label('total_vendido')
+    ).join(Venta, Producto.id == Venta.producto_id).group_by(Producto.nombre).all()
+
+    # Renderiza la plantilla HTML para el PDF
+    rendered = render_template('reporte_pdf.html', productos=productos, ventas=ventas)
+
+    # Ruta donde se guardará el PDF
+    output_folder = os.path.join(os.getcwd(), 'generated_reports')
+    os.makedirs(output_folder, exist_ok=True)  # Crea la carpeta si no existe
+    pdf_path = os.path.join(output_folder, 'reporte.pdf')
+
+    # Convierte el HTML a PDF y lo guarda en el servidor
+    with open(pdf_path, 'wb') as pdf_file:
+        pisa.CreatePDF(BytesIO(rendered.encode("UTF-8")), dest=pdf_file)
+
+    # Envía el archivo al cliente como descarga
+    return send_file(pdf_path, as_attachment=True, download_name='reporte.pdf')
+
+@app.route('/cargar_productos', methods=['GET', 'POST'])
+@login_required
+def cargar_productos():
+    if request.method == 'POST':
+        # Verifica si se subió un archivo
+        if 'archivo' not in request.files:
+            flash("No se seleccionó ningún archivo.", "danger")
+            return redirect(request.url)
+
+        archivo = request.files['archivo']
+
+        # Verifica si el archivo tiene un nombre válido
+        if archivo.filename == '':
+            flash("El archivo no tiene un nombre válido.", "danger")
+            return redirect(request.url)
+
+        # Guarda el archivo en el servidor
+        filename = secure_filename(archivo.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        archivo.save(filepath)
+
+        try:
+            # Leer el archivo Excel con pandas
+            df = pd.read_excel(filepath)
+
+            # Iterar sobre las filas del DataFrame y agregar productos
+            for _, row in df.iterrows():
+                producto = Producto(
+                    nombre=row['nombre'],
+                    precio=row['precio'],
+                    stock=row['stock']
+                )
+                db.session.add(producto)
+
+            db.session.commit()
+            flash("Productos cargados exitosamente desde el archivo Excel.", "success")
+        except Exception as e:
+            flash(f"Error al procesar el archivo: {e}", "danger")
+
+        return redirect(url_for('dashboard'))
+
+    return render_template('cargar_productos.html')
 
 @app.context_processor
 def inject_productos():
