@@ -215,6 +215,36 @@ def reportes():
     data = [venta.cantidad for venta in ventas]
     return render_template('reportes.html', ventas=ventas, productos=Producto.query.all(), labels=labels, data=data)
 
+@app.route('/vender/<int:producto_id>', methods=['POST'])
+@login_required
+def vender(producto_id):
+    producto = Producto.query.get_or_404(producto_id)
+    cantidad = int(request.form['cantidad'])
+
+    if cantidad > producto.stock:
+        flash(f"No hay suficiente stock para vender {cantidad} unidades de '{producto.nombre}'.", "danger")
+    else:
+        producto.stock -= cantidad
+        venta = Venta(producto_id=producto.id, cantidad=cantidad)
+        db.session.add(venta)
+        db.session.commit()
+        flash(f"Se vendieron {cantidad} unidades de '{producto.nombre}'.", "success")
+
+    return redirect(url_for('dashboard'))
+
+@app.route('/reporte_ventas')
+@login_required
+def reporte_ventas():
+    ventas = Venta.query.all()
+    total_ventas = sum(venta.cantidad * venta.producto.precio for venta in ventas if venta.producto)
+    return render_template('reporte_ventas.html', ventas=ventas, total_ventas=total_ventas)
+
+@app.route('/reporte_stock')
+@login_required
+def reporte_stock():
+    productos = Producto.query.all()
+    return render_template('reporte_stock.html', productos=productos)
+
 if __name__ == '__main__':
     with app.app_context():
         # Código para inicializar datos

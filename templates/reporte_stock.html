@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Reporte de Stock{% endblock %}
+
+{% block content %}
+<h1 class="text-center">Reporte de Stock</h1>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Producto</th>
+            <th>Stock Disponible</th>
+            <th>Precio Unitario</th>
+            <th>Valor Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for producto in productos %}
+        <tr>
+            <td>{{ producto.nombre }}</td>
+            <td>{{ producto.stock }}</td>
+            <td>${{ producto.precio }}</td>
+            <td>${{ producto.stock * producto.precio }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
