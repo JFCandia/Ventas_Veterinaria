@@ -35,6 +35,15 @@
                 <label for="stock" class="form-label">Stock Disponible</label>
                 <input type="number" class="form-control" id="stock" name="stock" required>
             </div>
+            <div class="mb-3">
+                <label for="categoria" class="form-label">Categoría</label>
+                <select class="form-control" id="categoria" name="categoria_id">
+                    <option value="">Sin Categoría</option>
+                    {% for categoria in categorias %}
+                    <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             <button type="submit" class="btn btn-primary w-100">Agregar Producto</button>
         </form>
     </div>

@@ -5,8 +5,11 @@
 {% block content %}
 <h1 class="text-center">Panel de Administración</h1>
 
-<a href="{{ url_for('generar_pdf') }}" class="btn btn-primary mb-4">Generar PDF</a>
-<a href="{{ url_for('cargar_productos') }}" class="btn btn-success mb-4">Cargar Productos desde Excel</a>
+<!-- Botones de acciones -->
+<div class="mb-4">
+    <a href="{{ url_for('cargar_productos') }}" class="btn btn-success">Cargar Productos desde Excel</a>
+    <a href="{{ url_for('reporte_bajo_stock') }}" class="btn btn-warning">Reporte de Bajo Stock</a>
+</div>
 
 <!-- Tabla de ventas -->
 <h2 class="mt-4">Ventas</h2>
@@ -27,6 +30,7 @@
             <td>{{ venta.fecha }}</td>
             <td>
                 <a href="{{ url_for('emitir_boleta', venta_id=venta.id) }}" class="btn btn-primary btn-sm">Emitir Boleta</a>
+                <a href="{{ url_for('generar_pdf', venta_id=venta.id) }}" class="btn btn-secondary btn-sm">Generar PDF</a>
             </td>
         </tr>
         {% endfor %}
@@ -41,6 +45,7 @@
             <th>Nombre</th>
             <th>Precio</th>
             <th>Stock</th>
+            <th>Categoría</th>
             <th>Acción</th>
         </tr>
     </thead>
@@ -50,6 +55,7 @@
             <td>{{ producto.nombre }}</td>
             <td>${{ producto.precio }}</td>
             <td>{{ producto.stock }}</td>
+            <td>{{ producto.categoria.nombre if producto.categoria else 'Sin Categoría' }}</td>
             <td>
                 <!-- Formulario para ajustar el stock -->
                 <form action="{{ url_for('ajustar_stock', producto_id=producto.id) }}" method="POST" class="d-inline">

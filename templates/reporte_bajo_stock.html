@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Reporte de Productos con Bajo Stock{% endblock %}
+
+{% block content %}
+<h1 class="text-center">Reporte de Productos con Bajo Stock</h1>
+<p class="text-center">Mostrando productos con stock menor a {{ umbral_stock }} unidades.</p>
+
+<table class="table table-bordered table-striped mt-4">
+    <thead class="table-dark">
+        <tr>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Stock</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for producto in productos %}
+        <tr>
+            <td>{{ producto.nombre }}</td>
+            <td>${{ producto.precio }}</td>
+            <td>{{ producto.stock }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if productos|length == 0 %}
+<p class="text-center text-danger">No hay productos con bajo stock.</p>
+{% endif %}
+{% endblock %}

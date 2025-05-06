@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, session, flash, make_response, send_file
+from flask import Flask, render_template, request, redirect, url_for, jsonify, session, flash, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -8,6 +8,7 @@ from io import BytesIO
 import os
 from werkzeug.utils import secure_filename
 import pandas as pd
+from models import db, Usuario, Producto, Venta, Categoria, HistorialStock
 
 # Configuración inicial
 app = Flask(__name__)
@@ -21,7 +22,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Inicialización de extensiones
-db = SQLAlchemy(app)
+db.init_app(app)  # Vincula SQLAlchemy con la aplicación Flask
 migrate = Migrate(app, db)
 
 # Configuración de Flask-Login
@@ -33,55 +34,11 @@ login_manager.login_view = 'login'
 def load_user(user_id):
     return Usuario.query.get(int(user_id))
 
-# Modelos de base de datos
-class Usuario(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password_hash = db.Column(db.String(200), nullable=False)
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
-class Producto(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(db.String(100), nullable=False)
-    precio = db.Column(db.Float, nullable=False)
-    stock = db.Column(db.Integer, nullable=False)
-
-class Venta(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    producto_id = db.Column(db.Integer, db.ForeignKey('producto.id'), nullable=False)
-    cantidad = db.Column(db.Integer, nullable=False)
-    fecha = db.Column(db.DateTime, default=db.func.current_timestamp())
-
-    # Relación con el modelo Producto
-    producto = db.relationship('Producto', backref='ventas')
-
 # Rutas de la aplicación
 @app.route('/')
 def index():
     productos = Producto.query.all()
     return render_template('index.html', productos=productos)
-
-@app.route('/vender/<int:producto_id>', methods=['POST'])
-@login_required
-def vender(producto_id):
-    producto = Producto.query.get_or_404(producto_id)
-    cantidad = int(request.form['cantidad'])
-
-    if producto.stock >= cantidad:
-        # Registrar la venta
-        venta = Venta(producto_id=producto.id, cantidad=cantidad)
-        producto.stock -= cantidad  # Actualizar el stock
-        db.session.add(venta)
-        db.session.commit()
-        flash(f"Venta registrada: {cantidad} unidades de {producto.nombre}.", "success")
-    else:
-        flash(f"No hay suficiente stock para vender {cantidad} unidades de {producto.nombre}.", "danger")
-    return redirect(url_for('index'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -93,8 +50,6 @@ def login():
         if user and user.check_password(password):
             login_user(user)
             flash(f"Bienvenido, {user.username}!", "success")
-
-            # Redirigir al usuario a la página que intentaba acceder o al dashboard
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('dashboard'))
         else:
@@ -112,7 +67,6 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # Consulta las ventas y pasa los datos a la plantilla
     ventas = Venta.query.all()
     productos = Producto.query.all()
     return render_template('dashboard.html', ventas=ventas, productos=productos)
@@ -121,74 +75,29 @@ def dashboard():
 @login_required
 def agregar_producto():
     if request.method == 'POST':
-        # Obtener los datos del formulario
         nombre = request.form['nombre']
         precio = float(request.form['precio'])
         stock = int(request.form['stock'])
+        categoria_id = request.form.get('categoria_id')
 
-        # Crear un nuevo producto
-        producto = Producto(nombre=nombre, precio=precio, stock=stock)
+        producto = Producto(nombre=nombre, precio=precio, stock=stock, categoria_id=categoria_id)
         db.session.add(producto)
         db.session.commit()
 
-        # Mostrar mensaje de éxito
         flash(f"Producto '{nombre}' agregado correctamente.", "success")
         return redirect(url_for('dashboard'))
 
-    # Mostrar el formulario
-    return render_template('agregar_producto.html')
-
-@app.route('/ventas')
-def ventas():
-    ventas = Venta.query.all()
-    return render_template('ventas.html', ventas=ventas)
-
-@app.route('/api/productos')
-def api_productos():
-    productos = Producto.query.all()
-    productos_json = [
-        {"id": p.id, "nombre": p.nombre, "precio": p.precio, "stock": p.stock}
-        for p in productos
-    ]
-    return jsonify(productos_json)
-
-@app.route('/guardar_productos')
-def guardar_productos():
-    productos = Producto.query.all()
-    session['productos'] = [
-        {"id": p.id, "nombre": p.nombre, "precio": p.precio, "stock": p.stock}
-        for p in productos
-    ]
-    return redirect(url_for('mostrar_productos'))
-
-@app.route('/mostrar_productos')
-def mostrar_productos():
-    productos = session.get('productos', [])
-    return render_template('productos.html', productos=productos)
-
-@app.route('/reportes')
-@login_required
-def reportes():
-    # Consulta las ventas y agrupa por producto
-    ventas = db.session.query(
-        Producto.nombre,
-        db.func.sum(Venta.cantidad).label('total')
-    ).join(Venta, Producto.id == Venta.producto_id).group_by(Producto.nombre).all()
-
-    # Extrae los nombres de los productos y las cantidades vendidas
-    labels = [venta[0] for venta in ventas]  # Nombres de los productos
-    data = [venta[1] for venta in ventas]    # Cantidades vendidas
-
-    return render_template('reportes.html', labels=labels, data=data)
+    categorias = Categoria.query.all()
+    return render_template('agregar_producto.html', categorias=categorias)
 
 @app.route('/eliminar_producto/<int:producto_id>', methods=['POST'])
 @login_required
 def eliminar_producto(producto_id):
-    producto = Producto.query.get_or_404(producto_id)  # Busca el producto o lanza un error 404
-    db.session.delete(producto)  # Elimina el producto de la base de datos
-    db.session.commit()  # Guarda los cambios
+    producto = Producto.query.get_or_404(producto_id)
+    db.session.delete(producto)
+    db.session.commit()
     flash(f"Producto '{producto.nombre}' eliminado correctamente.", "success")
-    return redirect(url_for('dashboard'))  # Redirige al dashboard
+    return redirect(url_for('dashboard'))
 
 @app.route('/ajustar_stock/<int:producto_id>', methods=['POST'])
 @login_required
@@ -200,62 +109,49 @@ def ajustar_stock(producto_id):
         flash(f"No puedes reducir más del stock disponible ({producto.stock}).", "danger")
     else:
         producto.stock -= cantidad_a_reducir
+        db.session.add(HistorialStock(
+            producto_id=producto.id,
+            cantidad_cambiada=-cantidad_a_reducir,
+            motivo="Ajuste manual"
+        ))
         db.session.commit()
         flash(f"Se redujo el stock de '{producto.nombre}' en {cantidad_a_reducir} unidades.", "success")
 
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('reporte_bajo_stock'))
 
-@app.route('/generar_pdf')
+@app.route('/reporte_bajo_stock')
 @login_required
-def generar_pdf():
-    # Consulta los datos necesarios
-    productos = Producto.query.all()
-    ventas = db.session.query(
-        Producto.nombre,
-        db.func.sum(Venta.cantidad).label('total_vendido')
-    ).join(Venta, Producto.id == Venta.producto_id).group_by(Producto.nombre).all()
+def reporte_bajo_stock():
+    umbral_stock = 5
+    productos_bajo_stock = Producto.query.filter(Producto.stock < umbral_stock).all()
+    return render_template('reporte_bajo_stock.html', productos=productos_bajo_stock, umbral_stock=umbral_stock)
 
-    # Renderiza la plantilla HTML para el PDF
-    rendered = render_template('reporte_pdf.html', productos=productos, ventas=ventas)
-
-    # Ruta donde se guardará el PDF
-    output_folder = os.path.join(os.getcwd(), 'generated_reports')
-    os.makedirs(output_folder, exist_ok=True)  # Crea la carpeta si no existe
-    pdf_path = os.path.join(output_folder, 'reporte.pdf')
-
-    # Convierte el HTML a PDF y lo guarda en el servidor
-    with open(pdf_path, 'wb') as pdf_file:
-        pisa.CreatePDF(BytesIO(rendered.encode("UTF-8")), dest=pdf_file)
-
-    # Envía el archivo al cliente como descarga
-    return send_file(pdf_path, as_attachment=True, download_name='reporte.pdf')
+@app.route('/historial_stock/<int:producto_id>')
+@login_required
+def historial_stock(producto_id):
+    producto = Producto.query.get_or_404(producto_id)
+    historial = HistorialStock.query.filter_by(producto_id=producto_id).all()
+    return render_template('historial_stock.html', producto=producto, historial=historial)
 
 @app.route('/cargar_productos', methods=['GET', 'POST'])
 @login_required
 def cargar_productos():
     if request.method == 'POST':
-        # Verifica si se subió un archivo
         if 'archivo' not in request.files:
             flash("No se seleccionó ningún archivo.", "danger")
             return redirect(request.url)
 
         archivo = request.files['archivo']
-
-        # Verifica si el archivo tiene un nombre válido
         if archivo.filename == '':
             flash("El archivo no tiene un nombre válido.", "danger")
             return redirect(request.url)
 
-        # Guarda el archivo en el servidor
         filename = secure_filename(archivo.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         archivo.save(filepath)
 
         try:
-            # Leer el archivo Excel con pandas
             df = pd.read_excel(filepath)
-
-            # Iterar sobre las filas del DataFrame y agregar productos
             for _, row in df.iterrows():
                 producto = Producto(
                     nombre=row['nombre'],
@@ -276,60 +172,57 @@ def cargar_productos():
 @app.route('/emitir_boleta/<int:venta_id>')
 @login_required
 def emitir_boleta(venta_id):
-    # Consulta la venta específica
     venta = Venta.query.get_or_404(venta_id)
     producto = Producto.query.get_or_404(venta.producto_id)
 
-    # Renderiza la plantilla HTML para la boleta
     rendered = render_template('boleta.html', venta=venta, producto=producto)
-
-    # Ruta donde se guardará el PDF temporalmente
     output_folder = os.path.join(os.getcwd(), 'generated_boletas')
-    os.makedirs(output_folder, exist_ok=True)  # Crea la carpeta si no existe
+    os.makedirs(output_folder, exist_ok=True)
     pdf_path = os.path.join(output_folder, f'boleta_{venta.id}.pdf')
 
-    # Convierte el HTML a PDF y lo guarda en el servidor
     with open(pdf_path, 'wb') as pdf_file:
         pisa.CreatePDF(BytesIO(rendered.encode("UTF-8")), dest=pdf_file)
 
-    # Envía el archivo al cliente como descarga
     return send_file(pdf_path, as_attachment=True, download_name=f'boleta_{venta.id}.pdf')
 
-@app.context_processor
-def inject_productos():
-    productos = Producto.query.all()  # Consulta todos los productos
-    return dict(productos=productos)
+@app.route('/generar_pdf/<int:venta_id>')
+@login_required
+def generar_pdf(venta_id):
+    venta = Venta.query.get_or_404(venta_id)
+    producto = Producto.query.get_or_404(venta.producto_id)
+
+    rendered = render_template('boleta.html', venta=venta, producto=producto)
+    output_folder = os.path.join(os.getcwd(), 'generated_boletas')
+    os.makedirs(output_folder, exist_ok=True)
+    pdf_path = os.path.join(output_folder, f'boleta_{venta.id}.pdf')
+
+    with open(pdf_path, 'wb') as pdf_file:
+        pisa.CreatePDF(BytesIO(rendered.encode("UTF-8")), dest=pdf_file)
+
+    return send_file(pdf_path, as_attachment=True, download_name=f'boleta_{venta.id}.pdf')
+
+@app.route('/ventas')
+@login_required
+def ventas():
+    ventas = Venta.query.all()
+    return render_template('ventas.html', ventas=ventas)
+
+@app.route('/reportes')
+@login_required
+def reportes():
+    ventas = Venta.query.all()
+    labels = [venta.producto.nombre for venta in ventas if venta.producto]
+    data = [venta.cantidad for venta in ventas]
+    return render_template('reportes.html', ventas=ventas, productos=Producto.query.all(), labels=labels, data=data)
 
 if __name__ == '__main__':
     with app.app_context():
-        # Agregar un usuario inicial si no existe
+        # Código para inicializar datos
         if not Usuario.query.filter_by(username="admin").first():
             usuario = Usuario(username="admin")
             usuario.set_password("admin123")
             db.session.add(usuario)
 
-        # Agregar productos iniciales si no existen
-        if not Producto.query.first():
-            productos_iniciales = [
-                Producto(nombre="Alimento para perros", precio=50.0, stock=20),
-                Producto(nombre="Alimento para gatos", precio=45.0, stock=15),
-                Producto(nombre="Juguete para perros", precio=25.0, stock=10),
-                Producto(nombre="Juguete para gatos", precio=20.0, stock=12),
-                Producto(nombre="Collar antipulgas", precio=35.0, stock=8),
-                Producto(nombre="Arena para gatos", precio=30.0, stock=25),
-                Producto(nombre="Shampoo para mascotas", precio=15.0, stock=18),
-                Producto(nombre="Cama para perros", precio=100.0, stock=5),
-                Producto(nombre="Cama para gatos", precio=90.0, stock=6),
-                Producto(nombre="Transportadora para mascotas", precio=120.0, stock=4),
-            ]
-            db.session.add_all(productos_iniciales)
-
-        # Guardar los cambios
         db.session.commit()
 
-        # Imprimir usuarios y productos
-        print(Usuario.query.all())  # Debería devolver una lista de usuarios
-        print(Producto.query.all())  # Debería devolver una lista de productos
-
-    # Iniciar la aplicación Flask
     app.run(debug=True)

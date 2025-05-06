@@ -31,19 +31,21 @@
         <table class="table table-bordered table-striped">
             <thead class="table-dark">
                 <tr>
-                    <th>ID</th>
+                    <th>ID Venta</th>
                     <th>Producto</th>
                     <th>Cantidad</th>
-                    <th>Fecha</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 {% for venta in ventas %}
                 <tr>
                     <td>{{ venta.id }}</td>
-                    <td>{{ venta.producto_id }}</td>
+                    <td>{{ venta.producto.nombre }}</td>
                     <td>{{ venta.cantidad }}</td>
-                    <td>{{ venta.fecha }}</td>
+                    <td>
+                        <a href="{{ url_for('generar_pdf', venta_id=venta.id) }}">Generar PDF</a>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

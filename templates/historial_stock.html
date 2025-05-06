@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Historial de Stock{% endblock %}
+
+{% block content %}
+<h1 class="text-center">Historial de Cambios en el Stock</h1>
+<h2 class="text-center">{{ producto.nombre }}</h2>
+
+<table class="table table-bordered table-striped mt-4">
+    <thead class="table-dark">
+        <tr>
+            <th>Cantidad Cambiada</th>
+            <th>Motivo</th>
+            <th>Fecha</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for cambio in historial %}
+        <tr>
+            <td>{{ cambio.cantidad_cambiada }}</td>
+            <td>{{ cambio.motivo }}</td>
+            <td>{{ cambio.fecha }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if historial|length == 0 %}
+<p class="text-center text-danger">No hay cambios registrados para este producto.</p>
+{% endif %}
+{% endblock %}
