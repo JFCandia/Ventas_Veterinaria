@@ -273,6 +273,28 @@ def cargar_productos():
 
     return render_template('cargar_productos.html')
 
+@app.route('/emitir_boleta/<int:venta_id>')
+@login_required
+def emitir_boleta(venta_id):
+    # Consulta la venta específica
+    venta = Venta.query.get_or_404(venta_id)
+    producto = Producto.query.get_or_404(venta.producto_id)
+
+    # Renderiza la plantilla HTML para la boleta
+    rendered = render_template('boleta.html', venta=venta, producto=producto)
+
+    # Ruta donde se guardará el PDF temporalmente
+    output_folder = os.path.join(os.getcwd(), 'generated_boletas')
+    os.makedirs(output_folder, exist_ok=True)  # Crea la carpeta si no existe
+    pdf_path = os.path.join(output_folder, f'boleta_{venta.id}.pdf')
+
+    # Convierte el HTML a PDF y lo guarda en el servidor
+    with open(pdf_path, 'wb') as pdf_file:
+        pisa.CreatePDF(BytesIO(rendered.encode("UTF-8")), dest=pdf_file)
+
+    # Envía el archivo al cliente como descarga
+    return send_file(pdf_path, as_attachment=True, download_name=f'boleta_{venta.id}.pdf')
+
 @app.context_processor
 def inject_productos():
     productos = Producto.query.all()  # Consulta todos los productos

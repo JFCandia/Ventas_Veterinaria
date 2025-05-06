@@ -16,6 +16,7 @@
             <th>Producto</th>
             <th>Cantidad Vendida</th>
             <th>Fecha</th>
+            <th>Acción</th>
         </tr>
     </thead>
     <tbody>
@@ -24,6 +25,9 @@
             <td>{{ venta.producto.nombre }}</td>
             <td>{{ venta.cantidad }}</td>
             <td>{{ venta.fecha }}</td>
+            <td>
+                <a href="{{ url_for('emitir_boleta', venta_id=venta.id) }}" class="btn btn-primary btn-sm">Emitir Boleta</a>
+            </td>
         </tr>
         {% endfor %}
     </tbody>

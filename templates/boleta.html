@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Boleta de Venta</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #343a40;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Boleta de Venta</h1>
+    <h2>Veterinaria Ventas</h2>
+
+    <p><strong>Fecha:</strong> {{ venta.fecha }}</p>
+    <p><strong>ID de Venta:</strong> {{ venta.id }}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ producto.nombre }}</td>
+                <td>{{ venta.cantidad }}</td>
+                <td>${{ producto.precio }}</td>
+                <td>${{ venta.cantidad * producto.precio }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p><strong>Total a Pagar:</strong> ${{ venta.cantidad * producto.precio }}</p>
+</body>
+</html>
