@@ -41,8 +41,8 @@ def load_user(user_id):
 @app.route('/')
 def index():
     if current_user.is_authenticated:
-        return redirect(url_for('ventas'))  # Redirige a ventas si está logueado
-    return redirect(url_for('login'))  # Redirige a login si no está logueado
+        return redirect(url_for('dashboard'))  # Redirige al dashboard si está autenticado
+    return redirect(url_for('login'))  # Redirige al login si no está autenticado
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
