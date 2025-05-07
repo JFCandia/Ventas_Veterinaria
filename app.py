@@ -29,7 +29,9 @@ migrate = Migrate(app, db)
 # Configuración de Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'
+login_manager.login_view = 'login'  # Redirige a la página de login si no está autenticado
+login_manager.login_message = "Por favor, inicia sesión para acceder a esta página."
+login_manager.login_message_category = "warning"
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -38,8 +40,9 @@ def load_user(user_id):
 # Rutas de la aplicación
 @app.route('/')
 def index():
-    productos = Producto.query.all()
-    return render_template('index.html', productos=productos)
+    if current_user.is_authenticated:
+        return redirect(url_for('ventas'))  # Redirige a ventas si está logueado
+    return redirect(url_for('login'))  # Redirige a login si no está logueado
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

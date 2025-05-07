@@ -32,7 +32,6 @@
             <td>{{ venta.fecha }}</td>
             <td>
                 <a href="{{ url_for('emitir_boleta', venta_id=venta.id) }}" class="btn btn-primary btn-sm">Emitir Boleta</a>
-                <a href="{{ url_for('generar_pdf', venta_id=venta.id) }}" class="btn btn-secondary btn-sm">Generar PDF</a>
             </td>
         </tr>
         {% endfor %}
