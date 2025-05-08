@@ -14,6 +14,15 @@
     <a href="{{ url_for('agregar_categoria') }}" class="btn btn-secondary">Agregar Categoría</a>
 </div>
 
+
+<!-- Buscador de ventas -->
+<div class="mb-4">
+    <form action="{{ url_for('dashboard') }}" method="GET" class="d-flex">
+        <input type="text" name="search" class="form-control me-2" placeholder="Buscar venta por producto..." value="{{ request.args.get('search', '') }}">
+        <button type="submit" class="btn btn-primary">Buscar</button>
+    </form>
+</div>
+
 <!-- Tabla de ventas -->
 <h2 class="mt-4">Ventas</h2>
 <table class="table table-bordered table-striped">

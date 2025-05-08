@@ -29,6 +29,14 @@
     <div class="container mt-4">
         <h1 class="text-center mb-4">Ventas</h1>
 
+        <!-- Buscador de productos disponibles -->
+        <div class="mb-4">
+            <form action="{{ url_for('ventas') }}" method="GET" class="d-flex">
+                <input type="text" name="search" class="form-control me-2" placeholder="Buscar producto disponible..." value="{{ request.args.get('search', '') }}">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+            </form>
+        </div>
+
         <!-- Mostrar productos disponibles -->
         <h2>Productos disponibles</h2>
         <table class="table table-striped">

@@ -71,8 +71,15 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    ventas = Venta.query.all()
-    productos = Producto.query.all()
+    search = request.args.get('search', '').strip()  # Obtén el término de búsqueda
+    if search:
+        # Filtrar ventas por el nombre del producto asociado
+        ventas = Venta.query.join(Producto).filter(Producto.nombre.ilike(f'%{search}%')).all()
+    else:
+        # Mostrar todas las ventas si no hay búsqueda
+        ventas = Venta.query.all()
+
+    productos = Producto.query.all()  # Mantén los productos para otras funcionalidades
     return render_template('dashboard.html', ventas=ventas, productos=productos, active_page='dashboard')
 
 @app.route('/agregar_producto', methods=['GET', 'POST'])
@@ -233,13 +240,16 @@ def generar_pdf(venta_id):
 @app.route('/ventas')
 @login_required
 def ventas():
+    search = request.args.get('search', '').strip()  # Obtén el término de búsqueda
+    if search:
+        # Filtrar productos disponibles por nombre que contengan el término de búsqueda
+        productos = Producto.query.filter(Producto.stock > 0, Producto.nombre.ilike(f'%{search}%')).all()
+    else:
+        # Mostrar solo los productos disponibles si no hay búsqueda
+        productos = Producto.query.filter(Producto.stock > 0).all()
+
     ventas = Venta.query.all()
-
-    productos = Producto.query.all()  # Obtén todos los productos
-    return render_template('ventas.html', ventas=ventas, productos=productos)
-
-    return render_template('ventas.html', ventas=ventas, active_page='ventas')
-
+    return render_template('ventas.html', ventas=ventas, productos=productos, active_page='ventas')
 
 @app.route('/reportes')
 @login_required
