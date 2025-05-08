@@ -22,13 +22,15 @@ class Producto(db.Model):
     precio = db.Column(db.Float, nullable=False)
     stock = db.Column(db.Integer, nullable=False)
     categoria_id = db.Column(db.Integer, db.ForeignKey('categoria.id'), nullable=True)
+    ventas = db.relationship('Venta', backref='producto', cascade="all, delete-orphan")
+    historial_stock = db.relationship('HistorialStock', backref='producto', cascade="all, delete-orphan")
 
 class Venta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     producto_id = db.Column(db.Integer, db.ForeignKey('producto.id'), nullable=False)
     cantidad = db.Column(db.Integer, nullable=False)
     fecha = db.Column(db.DateTime, default=db.func.current_timestamp())
-    producto = db.relationship('Producto', backref='ventas')
+    
 
 class HistorialStock(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -36,7 +38,6 @@ class HistorialStock(db.Model):
     cantidad_cambiada = db.Column(db.Integer, nullable=False)
     motivo = db.Column(db.String(255), nullable=False)
     fecha = db.Column(db.DateTime, default=db.func.current_timestamp())
-    producto = db.relationship('Producto', backref='historial_stock')
 
 class Categoria(db.Model):
     id = db.Column(db.Integer, primary_key=True)

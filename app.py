@@ -150,12 +150,25 @@ def cargar_productos():
             flash("El archivo no tiene un nombre válido.", "danger")
             return redirect(request.url)
 
+        if not archivo.filename.endswith('.xlsx'):
+            flash("El archivo debe ser un archivo Excel con extensión .xlsx.", "danger")
+            return redirect(request.url)
+
         filename = secure_filename(archivo.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         archivo.save(filepath)
 
         try:
+            # Leer el archivo Excel
             df = pd.read_excel(filepath)
+
+            # Validar que las columnas requeridas estén presentes
+            columnas_requeridas = {'nombre', 'precio', 'stock'}
+            if not columnas_requeridas.issubset(df.columns):
+                flash(f"El archivo Excel debe contener las columnas: {', '.join(columnas_requeridas)}.", "danger")
+                return redirect(request.url)
+
+            # Insertar productos en la base de datos
             for _, row in df.iterrows():
                 producto = Producto(
                     nombre=row['nombre'],
@@ -168,6 +181,10 @@ def cargar_productos():
             flash("Productos cargados exitosamente desde el archivo Excel.", "success")
         except Exception as e:
             flash(f"Error al procesar el archivo: {e}", "danger")
+        finally:
+            # Eliminar el archivo subido después de procesarlo
+            if os.path.exists(filepath):
+                os.remove(filepath)
 
         return redirect(url_for('dashboard'))
 
@@ -209,7 +226,8 @@ def generar_pdf(venta_id):
 @login_required
 def ventas():
     ventas = Venta.query.all()
-    return render_template('ventas.html', ventas=ventas)
+    productos = Producto.query.all()  # Obtén todos los productos
+    return render_template('ventas.html', ventas=ventas, productos=productos)
 
 @app.route('/reportes')
 @login_required
