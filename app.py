@@ -73,7 +73,7 @@ def logout():
 def dashboard():
     ventas = Venta.query.all()
     productos = Producto.query.all()
-    return render_template('dashboard.html', ventas=ventas, productos=productos)
+    return render_template('dashboard.html', ventas=ventas, productos=productos, active_page='dashboard')
 
 @app.route('/agregar_producto', methods=['GET', 'POST'])
 @login_required
@@ -92,7 +92,7 @@ def agregar_producto():
         return redirect(url_for('dashboard'))
 
     categorias = Categoria.query.all()
-    return render_template('agregar_producto.html', categorias=categorias)
+    return render_template('agregar_producto.html', categorias=categorias, active_page='agregar_producto')
 
 @app.route('/eliminar_producto/<int:producto_id>', methods=['POST'])
 @login_required
@@ -226,8 +226,12 @@ def generar_pdf(venta_id):
 @login_required
 def ventas():
     ventas = Venta.query.all()
+<<<<<<< HEAD
     productos = Producto.query.all()  # Obtén todos los productos
     return render_template('ventas.html', ventas=ventas, productos=productos)
+=======
+    return render_template('ventas.html', ventas=ventas, active_page='ventas')
+>>>>>>> d7dc5d893298a60fa902a3b07761d2c79e35e544
 
 @app.route('/reportes')
 @login_required
@@ -235,7 +239,7 @@ def reportes():
     ventas = Venta.query.all()
     labels = [venta.producto.nombre for venta in ventas if venta.producto]
     data = [venta.cantidad for venta in ventas]
-    return render_template('reportes.html', ventas=ventas, productos=Producto.query.all(), labels=labels, data=data)
+    return render_template('reportes.html', ventas=ventas, productos=Producto.query.all(), labels=labels, data=data, active_page='reportes')
 
 @app.route('/vender/<int:producto_id>', methods=['POST'])
 @login_required
