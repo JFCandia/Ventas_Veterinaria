@@ -11,6 +11,7 @@
     <a href="{{ url_for('reporte_bajo_stock') }}" class="btn btn-warning">Reporte de Bajo Stock</a>
     <a href="{{ url_for('reporte_ventas') }}" class="btn btn-primary">Reporte de Ventas</a>
     <a href="{{ url_for('reporte_stock') }}" class="btn btn-info">Reporte de Stock</a>
+    <a href="{{ url_for('agregar_categoria') }}" class="btn btn-secondary">Agregar Categoría</a>
 </div>
 
 <!-- Tabla de ventas -->
@@ -47,7 +48,6 @@
             <th>Precio</th>
             <th>Stock</th>
             <th>Categoría</th>
-            <th>Acción</th>
         </tr>
     </thead>
     <tbody>
@@ -57,18 +57,6 @@
             <td>${{ producto.precio }}</td>
             <td>{{ producto.stock }}</td>
             <td>{{ producto.categoria.nombre if producto.categoria else 'Sin Categoría' }}</td>
-            <td>
-                <!-- Formulario para ajustar el stock -->
-                <form action="{{ url_for('ajustar_stock', producto_id=producto.id) }}" method="POST" class="d-inline">
-                    <input type="number" name="cantidad" min="1" max="{{ producto.stock }}" placeholder="Cantidad" required>
-                    <button type="submit" class="btn btn-warning btn-sm">Reducir Stock</button>
-                </form>
-
-                <!-- Botón para eliminar producto -->
-                <form action="{{ url_for('eliminar_producto', producto_id=producto.id) }}" method="POST" class="d-inline">
-                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?')">Eliminar</button>
-                </form>
-            </td>
         </tr>
         {% endfor %}
     </tbody>

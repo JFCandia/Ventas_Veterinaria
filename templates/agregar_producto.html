@@ -3,49 +3,31 @@
 {% block title %}Agregar Producto{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <h1 class="text-center mb-4">Agregar Producto</h1>
-
-        <!-- Mostrar mensajes flash -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <div>
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            {% endfor %}
+<div class="container mt-4">
+    <h1>Agregar Producto</h1>
+    <form action="{{ url_for('agregar_producto') }}" method="POST">
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre del Producto</label>
+            <input type="text" class="form-control" id="nombre" name="nombre" required>
         </div>
-        {% endif %}
-        {% endwith %}
-
-        <!-- Formulario para agregar producto -->
-        <form action="{{ url_for('agregar_producto') }}" method="POST">
-            <div class="mb-3">
-                <label for="nombre" class="form-label">Nombre del Producto</label>
-                <input type="text" class="form-control" id="nombre" name="nombre" required>
-            </div>
-            <div class="mb-3">
-                <label for="precio" class="form-label">Precio</label>
-                <input type="number" step="0.01" class="form-control" id="precio" name="precio" required>
-            </div>
-            <div class="mb-3">
-                <label for="stock" class="form-label">Stock Disponible</label>
-                <input type="number" class="form-control" id="stock" name="stock" required>
-            </div>
-            <div class="mb-3">
-                <label for="categoria" class="form-label">Categoría</label>
-                <select class="form-control" id="categoria" name="categoria_id">
-                    <option value="">Sin Categoría</option>
-                    {% for categoria in categorias %}
-                    <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Agregar Producto</button>
-        </form>
-    </div>
+        <div class="mb-3">
+            <label for="precio" class="form-label">Precio</label>
+            <input type="number" class="form-control" id="precio" name="precio" step="0.01" required>
+        </div>
+        <div class="mb-3">
+            <label for="stock" class="form-label">Stock</label>
+            <input type="number" class="form-control" id="stock" name="stock" required>
+        </div>
+        <div class="mb-3">
+            <label for="categoria_id" class="form-label">Categoría</label>
+            <select class="form-select" id="categoria_id" name="categoria_id">
+                <option value="" selected>Sin categoría</option>
+                {% for categoria in categorias %}
+                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Agregar</button>
+    </form>
 </div>
 {% endblock %}

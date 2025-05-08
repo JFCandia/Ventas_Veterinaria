@@ -84,10 +84,18 @@ def agregar_producto():
         stock = int(request.form['stock'])
         categoria_id = request.form.get('categoria_id')
 
-        producto = Producto(nombre=nombre, precio=precio, stock=stock, categoria_id=categoria_id)
-        db.session.add(producto)
-        db.session.commit()
+        if not nombre.strip():
+            flash("El nombre del producto no puede estar vacío.", "danger")
+            return redirect(request.url)
 
+        nuevo_producto = Producto(
+            nombre=nombre,
+            precio=precio,
+            stock=stock,
+            categoria_id=categoria_id
+        )
+        db.session.add(nuevo_producto)
+        db.session.commit()
         flash(f"Producto '{nombre}' agregado correctamente.", "success")
         return redirect(url_for('dashboard'))
 
@@ -226,12 +234,12 @@ def generar_pdf(venta_id):
 @login_required
 def ventas():
     ventas = Venta.query.all()
-<<<<<<< HEAD
+
     productos = Producto.query.all()  # Obtén todos los productos
     return render_template('ventas.html', ventas=ventas, productos=productos)
-=======
+
     return render_template('ventas.html', ventas=ventas, active_page='ventas')
->>>>>>> d7dc5d893298a60fa902a3b07761d2c79e35e544
+
 
 @app.route('/reportes')
 @login_required
@@ -292,6 +300,28 @@ def generar_pdf_reporte_stock():
     pisa.CreatePDF(BytesIO(rendered.encode("UTF-8")), dest=pdf)
     pdf.seek(0)
     return send_file(pdf, as_attachment=True, download_name='reporte_stock.pdf')
+
+@app.route('/agregar_categoria', methods=['GET', 'POST'])
+@login_required
+def agregar_categoria():
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        if not nombre.strip():
+            flash("El nombre de la categoría no puede estar vacío.", "danger")
+            return redirect(request.url)
+
+        # Verifica si la categoría ya existe
+        if Categoria.query.filter_by(nombre=nombre).first():
+            flash("La categoría ya existe.", "warning")
+            return redirect(request.url)
+
+        nueva_categoria = Categoria(nombre=nombre)
+        db.session.add(nueva_categoria)
+        db.session.commit()
+        flash(f"Categoría '{nombre}' agregada correctamente.", "success")
+        return redirect(url_for('dashboard'))
+
+    return render_template('agregar_categoria.html')
 
 if __name__ == '__main__':
     with app.app_context():
