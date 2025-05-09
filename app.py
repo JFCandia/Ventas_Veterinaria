@@ -10,6 +10,7 @@ from werkzeug.utils import secure_filename
 import pandas as pd
 from models import db, Usuario, Producto, Venta, Categoria, HistorialStock, ProductoEliminado
 from datetime import datetime
+from sqlalchemy import text, create_engine
 
 # Configuración inicial
 app = Flask(__name__)
@@ -36,6 +37,8 @@ login_manager.login_message_category = "warning"
 @login_manager.user_loader
 def load_user(user_id):
     return Usuario.query.get(int(user_id))
+
+
 
 # Rutas de la aplicación
 @app.route('/')
@@ -132,20 +135,26 @@ def eliminar_producto(producto_id):
 @app.route('/ajustar_stock/<int:producto_id>', methods=['POST'])
 @login_required
 def ajustar_stock(producto_id):
-    producto = Producto.query.get_or_404(producto_id)
-    cantidad_a_reducir = int(request.form['cantidad'])
+    try:
+        producto = Producto.query.get_or_404(producto_id)
+        cantidad_a_reducir = int(request.form['cantidad'])
 
-    if cantidad_a_reducir > producto.stock:
-        flash(f"No puedes reducir más del stock disponible ({producto.stock}).", "danger")
-    else:
-        producto.stock -= cantidad_a_reducir
-        db.session.add(HistorialStock(
-            producto_id=producto.id,
-            cantidad_cambiada=-cantidad_a_reducir,
-            motivo="Ajuste manual"
-        ))
-        db.session.commit()
-        flash(f"Se redujo el stock de '{producto.nombre}' en {cantidad_a_reducir} unidades.", "success")
+        if cantidad_a_reducir > producto.stock:
+            flash(f"No puedes reducir más del stock disponible ({producto.stock}).", "danger")
+        else:
+            producto.stock -= cantidad_a_reducir
+            db.session.add(HistorialStock(
+                producto_id=producto.id,
+                cantidad_cambiada=-cantidad_a_reducir,
+                motivo="Ajuste manual"
+            ))
+            db.session.commit()
+            flash(f"Se redujo el stock de '{producto.nombre}' en {cantidad_a_reducir} unidades.", "success")
+    except Exception as e:
+        db.session.rollback()  # Revertir cambios si ocurre un error
+        flash(f"Error al ajustar el stock: {e}", "danger")
+    finally:
+        db.session.remove()  # Usa remove() en lugar de close() para evitar problemas de conexión
 
     return redirect(url_for('reporte_stock'))
 
@@ -366,12 +375,15 @@ def generar_pdf_productos_eliminados():
 
 if __name__ == '__main__':
     with app.app_context():
+        # Configurar SQLite para acceso concurrente
+        with db.engine.connect() as connection:
+            connection.execute(text("PRAGMA journal_mode=WAL"))
+
         # Código para inicializar datos
         if not Usuario.query.filter_by(username="admin").first():
             usuario = Usuario(username="admin")
             usuario.set_password("admin123")
             db.session.add(usuario)
-
-        db.session.commit()
+            db.session.commit()
 
     app.run(debug=True)
