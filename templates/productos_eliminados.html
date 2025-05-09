@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Productos Eliminados{% endblock %}
+
+{% block content %}
+<h1 class="text-center">Productos Eliminados</h1>
+
+<div class="text-end mb-3">
+    <a href="{{ url_for('generar_pdf_productos_eliminados') }}" class="btn btn-danger">Generar PDF</a>
+</div>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>Fecha de Eliminación</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for producto in productos %}
+        <tr>
+            <td>{{ producto.nombre }}</td>
+            <td>${{ producto.precio }}</td>
+            <td>{{ producto.stock }}</td>
+            <td>{{ producto.fecha_eliminacion }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

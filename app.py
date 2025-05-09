@@ -8,7 +8,7 @@ from io import BytesIO
 import os
 from werkzeug.utils import secure_filename
 import pandas as pd
-from models import db, Usuario, Producto, Venta, Categoria, HistorialStock
+from models import db, Usuario, Producto, Venta, Categoria, HistorialStock, ProductoEliminado
 from datetime import datetime
 
 # Configuración inicial
@@ -87,7 +87,7 @@ def dashboard():
 def agregar_producto():
     if request.method == 'POST':
         nombre = request.form['nombre']
-        precio = float(request.form['precio'])
+        precio = round(float(request.form['precio']))  # Redondear el precio
         stock = int(request.form['stock'])
         categoria_id = request.form.get('categoria_id')
 
@@ -97,7 +97,7 @@ def agregar_producto():
 
         nuevo_producto = Producto(
             nombre=nombre,
-            precio=precio,
+            precio=precio,  # Precio redondeado
             stock=stock,
             categoria_id=categoria_id
         )
@@ -113,10 +113,21 @@ def agregar_producto():
 @login_required
 def eliminar_producto(producto_id):
     producto = Producto.query.get_or_404(producto_id)
+
+    # Registrar el producto eliminado
+    producto_eliminado = ProductoEliminado(
+        nombre=producto.nombre,
+        precio=producto.precio,
+        stock=producto.stock
+    )
+    db.session.add(producto_eliminado)
+
+    # Eliminar el producto de la base de datos
     db.session.delete(producto)
     db.session.commit()
+
     flash(f"Producto '{producto.nombre}' eliminado correctamente.", "success")
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('reporte_stock'))
 
 @app.route('/ajustar_stock/<int:producto_id>', methods=['POST'])
 @login_required
@@ -136,7 +147,7 @@ def ajustar_stock(producto_id):
         db.session.commit()
         flash(f"Se redujo el stock de '{producto.nombre}' en {cantidad_a_reducir} unidades.", "success")
 
-    return redirect(url_for('reporte_bajo_stock'))
+    return redirect(url_for('reporte_stock'))
 
 @app.route('/reporte_bajo_stock')
 @login_required
@@ -187,7 +198,7 @@ def cargar_productos():
             for _, row in df.iterrows():
                 producto = Producto(
                     nombre=row['nombre'],
-                    precio=row['precio'],
+                    precio=round(row['precio']),  # Redondear el precio
                     stock=row['stock']
                 )
                 db.session.add(producto)
@@ -287,6 +298,9 @@ def reporte_ventas():
 @login_required
 def reporte_stock():
     productos = Producto.query.all()
+    # Convertir precios a enteros
+    for producto in productos:
+        producto.precio = int(producto.precio)
     return render_template('reporte_stock.html', productos=productos)
 
 @app.route('/generar_pdf_reporte_ventas')
@@ -332,6 +346,23 @@ def agregar_categoria():
         return redirect(url_for('dashboard'))
 
     return render_template('agregar_categoria.html')
+
+@app.route('/productos_eliminados')
+@login_required
+def productos_eliminados():
+    productos = ProductoEliminado.query.all()
+    return render_template('productos_eliminados.html', productos=productos)
+
+@app.route('/generar_pdf_productos_eliminados')
+@login_required
+def generar_pdf_productos_eliminados():
+    productos_eliminados = ProductoEliminado.query.all()
+    now = datetime.now()
+    rendered = render_template('productos_eliminados_pdf.html', productos=productos_eliminados, now=now)
+    pdf = BytesIO()
+    pisa.CreatePDF(BytesIO(rendered.encode("UTF-8")), dest=pdf)
+    pdf.seek(0)
+    return send_file(pdf, as_attachment=True, download_name='productos_eliminados.pdf')
 
 if __name__ == '__main__':
     with app.app_context():

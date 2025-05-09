@@ -17,24 +17,51 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul>
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     {% if active_page != 'dashboard' %}
-                    <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                    </li>
                     {% endif %}
                     {% if active_page != 'ventas' %}
-                    <li><a href="{{ url_for('ventas') }}">Ventas</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('ventas') }}">Ventas</a>
+                    </li>
                     {% endif %}
                     {% if active_page != 'reportes' %}
-                    <li><a href="{{ url_for('reportes') }}">Reportes</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('reportes') }}">Reportes</a>
+                    </li>
                     {% endif %}
                     {% if active_page != 'agregar_producto' %}
-                    <li><a href="{{ url_for('agregar_producto') }}">Agregar Producto</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('agregar_producto') }}">Agregar Producto</a>
+                    </li>
                     {% endif %}
-                    <li><a href="{{ url_for('logout') }}">Cerrar sesión</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('productos_eliminados') }}">Productos Eliminados</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}">Cerrar sesión</a>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
+
+    <!-- Mensajes flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mt-3">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
 
     <!-- Contenido dinámico -->
     <div class="container mt-4">

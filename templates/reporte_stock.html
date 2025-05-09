@@ -17,6 +17,7 @@
             <th>Stock Disponible</th>
             <th>Precio Unitario</th>
             <th>Valor Total</th>
+            <th>Acciones</th>
         </tr>
     </thead>
     <tbody>
@@ -24,8 +25,19 @@
         <tr>
             <td>{{ producto.nombre }}</td>
             <td>{{ producto.stock }}</td>
-            <td>${{ producto.precio }}</td>
-            <td>${{ producto.stock * producto.precio }}</td>
+            <td>${{ producto.precio | int }}</td> <!-- Precio unitario sin decimales -->
+            <td>${{ (producto.stock * producto.precio) | int }}</td> <!-- Valor total sin decimales -->
+            <td>
+                <!-- Botón para reducir stock -->
+                <form action="{{ url_for('ajustar_stock', producto_id=producto.id) }}" method="POST" style="display:inline;">
+                    <input type="number" name="cantidad" min="1" max="{{ producto.stock }}" placeholder="Cantidad" required>
+                    <button type="submit" class="btn btn-warning btn-sm">Reducir Stock</button>
+                </form>
+                <!-- Botón para eliminar producto -->
+                <form action="{{ url_for('eliminar_producto', producto_id=producto.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-danger btn-sm">Eliminar Producto</button>
+                </form>
+            </td>
         </tr>
         {% endfor %}
     </tbody>

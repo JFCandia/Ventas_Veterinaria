@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.sql import func
 from sqlalchemy.orm import validates
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -92,3 +93,10 @@ class Categoria(db.Model):
     productos = db.relationship('Producto', backref='categoria', lazy=True)
     created_at = db.Column(db.DateTime, server_default=func.now())
     updated_at = db.Column(db.DateTime, onupdate=func.now())
+
+class ProductoEliminado(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    precio = db.Column(db.Integer, nullable=False)
+    stock = db.Column(db.Integer, nullable=False)
+    fecha_eliminacion = db.Column(db.DateTime, default=datetime.utcnow)
