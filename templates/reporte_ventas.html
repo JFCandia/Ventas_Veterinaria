@@ -21,15 +21,15 @@
     </thead>
     <tbody>
         {% for venta in ventas %}
-        <tr>
-            <td>{{ venta.producto.nombre }}</td>
-            <td>{{ venta.cantidad }}</td>
-            <td>${{ venta.producto.precio }}</td>
-            <td>${{ venta.cantidad * venta.producto.precio }}</td>
-        </tr>
+         <tr>
+        <td>{{ venta.producto.nombre }}</td>
+        <td>{{ venta.cantidad }}</td>
+        <td>${{ "{:,.0f}".format(venta.producto.precio).replace(',', '.') }}</td> <!-- Formato con separador de miles -->
+        <td>${{ "{:,.0f}".format(venta.cantidad * venta.producto.precio).replace(',', '.') }}</td> <!-- Formato con separador de miles -->
+    </tr>
         {% endfor %}
     </tbody>
 </table>
 
-<h3 class="text-end">Total de Ventas: ${{ total_ventas }}</h3>
+<h3 class="text-end">Total de Ventas: ${{ "{:,.0f}".format(total_ventas).replace(',', '.') }}</h3>
 {% endblock %}

@@ -271,13 +271,6 @@ def ventas():
     ventas = Venta.query.all()
     return render_template('ventas.html', ventas=ventas, productos=productos, active_page='ventas')
 
-@app.route('/reportes')
-@login_required
-def reportes():
-    ventas = Venta.query.all()
-    labels = [venta.producto.nombre for venta in ventas if venta.producto]
-    data = [venta.cantidad for venta in ventas]
-    return render_template('reportes.html', ventas=ventas, productos=Producto.query.all(), labels=labels, data=data, active_page='reportes')
 
 @app.route('/vender/<int:producto_id>', methods=['POST'])
 @login_required
